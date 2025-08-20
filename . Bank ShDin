@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>البنك الافتراضي مع ShDin والمؤشرات</title>
+<style>
+body{margin:0;font-family:"Cairo",sans-serif;background:#1a1a1a;color:#f5f5f5;}
+.container{display:flex;height:100vh;}
+.sidebar{width:80px;background:#222;display:flex;flex-direction:column;align-items:center;padding-top:20px;}
+.sidebar button{background:none;border:none;color:#00c6ff;font-size:24px;margin:12px 0;cursor:pointer;transition:.3s;}
+.sidebar button:hover{color:#007bff;}
+.main{flex:1;padding:20px;text-align:center;overflow-y:auto;}
+.logo{font-size:28px;font-weight:bold;background:linear-gradient(90deg,#007bff,#00c6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;}
+.card{background:#2b2b2b;border-radius:15px;padding:20px;margin:10px auto;max-width:350px;}
+input,button{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;font-size:16px;}
+input{background:#333;color:#fff;}
+button.action-btn{background:linear-gradient(135deg,#007bff,#00c6ff);color:#fff;font-weight:bold;cursor:pointer;transition:.3s;}
+button.action-btn:hover{opacity:.8;}
+.balance-card{background:#111;padding:15px;border-radius:12px;margin-bottom:10px;color:#00c6ff;font-size:18px;}
+ul{list-style:none;padding:0;text-align:right;}
+li{background:#333;margin:5px 0;padding:8px;border-radius:6px;}
+#loginCard{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;}
+</style>
+</head>
+<body>
+
+<!-- شاشة تسجيل الدخول -->
+<div id="loginCard">
+  <div class="logo">💙 Virtual Bank</div>
+  <h2>تسجيل الدخول</h2>
+  <input type="text" id="username" placeholder="ادخل اسم المستخدم">
+  <button class="action-btn" onclick="login()">دخول</button>
+</div>
+
+<!-- البنك -->
+<div class="container hidden" id="bankContainer">
+  <div class="sidebar">
+    <button onclick="showSection('depositSection')" title="إيداع دينار">💰</button>
+    <button onclick="showSection('withdrawSection')" title="سحب دينار">🏧</button>
+    <button onclick="showSection('transferSection')" title="تحويل دينار">🔄</button>
+    <button onclick="showSection('depositShDinSection')" title="إيداع ShDin">🪙</button>
+    <button onclick="showSection('withdrawShDinSection')" title="سحب ShDin">🪙</button>
+    <button onclick="showSection('transferShDinSection')" title="تحويل ShDin">🪙</button>
+    <button onclick="showSection('historySection')" title="كشف الحساب">📜</button>
+    <button onclick="showSection('ecoSection')" title="المؤشرات الاقتصادية">📊</button>
+  </div>
+
+  <div class="main">
+    <div class="logo">💙 Virtual Bank</div>
+    <h2>مرحباً، <span id="userDisplay"></span></h2>
+    <div class="balance-card">الرصيد: <span id="balance">0</span> دينار</div>
+    <div class="balance-card">رصيد ShDin: <span id="balanceShDin">0</span> ShDin</div>
+
+    <!-- أقسام الدينار -->
+    <div id="depositSection" class="card">
+      <h3>إيداع دينار</h3>
+      <input type="number" id="depositAmount" placeholder="أدخل المبلغ">
+      <button class="action-btn" onclick="deposit()">إيداع</button>
+    </div>
+
+    <div id="withdrawSection" class="card" style="display:none;">
+      <h3>سحب دينار</h3>
+      <input type="number" id="withdrawAmount" placeholder="أدخل المبلغ">
+      <button class="action-btn" onclick="withdraw()">سحب</button>
+    </div>
+
+    <div id="transferSection" class="card" style="display:none;">
+      <h3>تحويل دينار</h3>
+      <input type="text" id="transferTo" placeholder="اسم المستفيد">
+      <input type="number" id="transferAmount" placeholder="أدخل المبلغ">
+      <button class="action-btn" onclick="transfer()">تحويل</button>
+    </div>
+
+    <!-- أقسام ShDin -->
+    <div id="depositShDinSection" class="card" style="display:none;">
+      <h3>إيداع ShDin</h3>
+      <input type="number" id="depositShDinAmount" placeholder="أدخل المبلغ">
+      <button class="action-btn" onclick="depositShDin()">إيداع</button>
+    </div>
+
+    <div id="withdrawShDinSection" class="card" style="display:none;">
+      <h3>سحب ShDin</h3>
+      <input type="number" id="withdrawShDinAmount" placeholder="أدخل المبلغ">
+      <button class="action-btn" onclick="withdrawShDin()">سحب</button>
+    </div>
+
+    <div id="transferShDinSection" class="card" style="display:none;">
+      <h3>تحويل ShDin</h3>
+      <input type="text" id="transferShDinTo" placeholder="اسم المستفيد">
+      <input type="number" id="transferShDinAmount" placeholder="أدخل المبلغ">
+      <button class="action-btn" onclick="transferShDin()">تحويل</button>
+    </div>
+
+    <div id="historySection" class="card" style="display:none;">
+      <h3>كشف الحساب</h3>
+      <ul id="history"></ul>
+    </div>
+
+    <div id="ecoSection" class="card" style="display:none;">
+      <h3>المؤشرات الاقتصادية</h3>
+      <p>سعر الصرف (دينار/ShDin): <span id="exchangeRate">100</span></p>
+      <p>السيولة الافتراضية: <span id="liquidity">1,000,000</span></p>
+      <p>مؤشر التضخم: <span id="inflation">2%</span></p>
+      <p>إجمالي ShDin في السوق: <span id="totalShDin">0</span></p>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser="";
+let usersData={};
+if(localStorage.getItem("usersData")) usersData=JSON.parse(localStorage.getItem("usersData"));
+
+// مؤشرات اقتصادية
+let totalShDin=0;
+let exchangeRate=100; // 1 ShDin = 100 دينار
+let liquidity=1000000;
+let inflation=2;
+
+function updateEconomicIndicators(){
+  document.getElementById("exchangeRate").innerText = exchangeRate.toFixed(2);
+  document.getElementById("liquidity").innerText = liquidity.toLocaleString();
+  document.getElementById("inflation").innerText = inflation.toFixed(2) + "%";
+  document.getElementById("totalShDin").innerText = totalShDin;
+}
+
+function login(){
+  const username=document.getElementById("username").value.trim();
+  if(!username){ alert("ادخل اسم المستخدم"); return; }
+  currentUser=username;
+  if(!usersData[currentUser]) usersData[currentUser]={balance:0,balanceShDin:0,history:[]};
+  document.getElementById("userDisplay").innerText=currentUser;
+  updateBalances(); renderHistory(); updateEconomicIndicators();
+  document.getElementById("loginCard").classList.add("hidden");
+  document.getElementById("bankContainer").classList.remove("hidden");
+}
+
+function saveData(){ localStorage.setItem("usersData",JSON.stringify(usersData)); }
+
+function showSection(id){
+  ['depositSection','withdrawSection','transferSection','depositShDinSection','withdrawShDinSection','transferShDinSection','historySection','ecoSection'].forEach(sec=>{
+    document.getElementById(sec).style.display=(sec===id)?'block':'none';
+  });
+}
+
+function renderHistory(){
+  const ul=document.getElementById("history"); ul.innerHTML="";
+  usersData[currentUser].history.slice().reverse().forEach(entry=>{
+    const li=document.createElement("li"); li.textContent=entry; ul.appendChild(li);
+  });
+}
+
+function updateBalances(){
+  document.getElementById("balance").innerText=usersData[currentUser].balance;
+  document.getElementById("balanceShDin").innerText=usersData[currentUser].balanceShDin;
+}
+
+// دينار
+function deposit(){
+  let amount=Number(document.getElementById("depositAmount").value);
+  if(amount>0){
+    usersData[currentUser].balance+=amount;
+    usersData[currentUser].history.push(`إيداع: +${amount} دينار`);
+    updateBalances(); document.getElementById("depositAmount").value=""; renderHistory(); saveData();
+  } else alert("أدخل مبلغ صالح");
+}
+function withdraw(){
+  let amount=Number(document.getElementById("withdrawAmount").value);
+  if(amount>0 && amount<=usersData[currentUser].balance){
+    usersData[currentUser].balance-=amount;
+    usersData[currentUser].history.push(`سحب: -${amount} دينار`);
+    updateBalances(); document.getElementById("withdrawAmount").value=""; renderHistory(); saveData();
+  } else alert("رصيد غير كافٍ");
+}
+function transfer(){
+  let amount=Number(document.getElementById("transferAmount").value);
+  let to=document.getElementById("transferTo").value.trim();
+  if(amount>0 && to && amount<=usersData[currentUser].balance){
+    if(!usersData[to]) usersData[to]={balance:0,balanceShDin:0,history:[]};
+    usersData[currentUser].balance-=amount;
+    usersData[to].balance+=amount;
+    usersData[currentUser].history.push(`تحويل: -${amount} دينار إلى ${to}`);
+    usersData[to].history.push(`تحويل: +${amount} دينار من ${currentUser}`);
+    updateBalances(); document.getElementById("transferAmount").value=""; document.getElementById("transferTo").value=""; renderHistory(); saveData();
+  } else alert("بيانات غير صحيحة أو رصيد غير كافٍ");
+}
+
+// ShDin
+function depositShDin(){
+  let amount=Number(document.getElementById("depositShDinAmount").value);
+  if(amount>0){
+    usersData[currentUser].balanceShDin+=amount;
+    usersData[currentUser].history.push(`إيداع: +${amount} ShDin`);
+    totalShDin+=amount;
+    liquidity+=amount*exchangeRate*0.5;
+    inflation+=0.01*amount;
+    updateBalances(); document.getElementById("depositShDinAmount").value=""; renderHistory(); updateEconomicIndicators(); saveData();
+  } else alert("أدخل مبلغ صالح");
+}
+function withdrawShDin(){
+  let amount=Number(document.getElementById("withdrawShDinAmount").value);
+  if(amount>0 && amount<=usersData[currentUser].balanceShDin){
+    usersData[currentUser].balanceShDin-=amount;
+    usersData[currentUser].history.push(`سحب: -${amount} ShDin`);
+    totalShDin-=amount;
+    liquidity-=amount*exchangeRate*0.5;
+    inflation-=0.01*amount;
+    updateBalances(); document.getElementById("withdrawShDinAmount").value=""; renderHistory(); updateEconomicIndicators(); saveData();
+  } else alert("رصيد ShDin غير كافٍ");
+}
+function transferShDin(){
+  let amount=Number(document.getElementById("transferShDinAmount").value);
+  let to=document.getElementById("transferShDinTo").value.trim();
+  if(amount>0 && to && amount<=usersData[currentUser].balanceShDin){
+    if(!usersData[to]) usersData[to]={balance:0,balanceShDin:0,history:[]};
+    usersData[currentUser].balanceShDin-=amount;
+    usersData[to].balanceShDin+=amount;
+    usersData[currentUser].history.push(`تحويل: -${amount} ShDin إلى ${to}`);
+    usersData[to].history.push(`تحويل: +${amount} ShDin من ${currentUser}`);
+    totalShDin-=0; // لا يتغير إجمالي العملة عند التحويل
+    updateBalances(); document.getElementById("transferShDinAmount").value=""; document.getElementById("transferShDinTo").value=""; renderHistory(); updateEconomicIndicators(); saveData();
+  } else alert("بيانات غير صحيحة أو رصيد ShDin غير كافٍ");
+}
+</script>
+
+</body>
+</html>
+
+
